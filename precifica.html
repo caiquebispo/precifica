@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Precifica — Calculadora de Preço</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:      #0f1117;
+  --s1:      #171b27;
+  --s2:      #1e2235;
+  --border:  #2a3050;
+  --border2: #363d58;
+  --text:    #f0f2f8;
+  --text2:   #b8bdd4;
+  --text3:   #6b7599;
+  --acc:     #ff6b35;
+  --acc-l:   #ff8a5b;
+  --acc-bg:  rgba(255,107,53,.10);
+  --acc-bd:  rgba(255,107,53,.22);
+  --ml:      #ffe600;
+  --ml-l:    #fff176;
+  --ml-bg:   rgba(255,230,0,.08);
+  --ml-bd:   rgba(255,230,0,.20);
+  --ok:      #30d158;
+  --ok-bg:   rgba(48,209,88,.09);
+  --ok-bd:   rgba(48,209,88,.22);
+  --err:     #ff453a;
+  --err-bg:  rgba(255,69,58,.09);
+  --err-bd:  rgba(255,69,58,.22);
+  --warn:    #ffd60a;
+  --warn-bg: rgba(255,214,10,.09);
+  --warn-bd: rgba(255,214,10,.20);
+  --info:    #636aff;
+  --info-bg: rgba(99,106,255,.09);
+  --info-bd: rgba(99,106,255,.20);
+  --fn:'Plus Jakarta Sans',sans-serif;
+  --mo:'JetBrains Mono',monospace;
+  --r:12px; --r2:9px; --r3:7px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{background:var(--bg);color:var(--text);font-family:var(--fn);min-height:100vh;padding-bottom:80px;}
+
+/* ── TOP BAR ── */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(15,17,23,.94);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;height:56px;gap:12px;
+}
+.logo-mark{width:32px;height:32px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;}
+.logo-name{font-size:17px;font-weight:800;letter-spacing:-.4px;}
+.mp-nav{margin-left:auto;display:flex;gap:6px;}
+.mp-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text3);font-family:var(--fn);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.mp-btn.shopee.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+.mp-btn.ml.on{background:var(--ml);border-color:var(--ml);color:#000;}
+.mp-btn.off{opacity:.3;cursor:not-allowed;}
+@media(max-width:600px){.mp-nav{display:none;}}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(23,27,39,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);height:64px;align-items:center;justify-content:center;gap:8px;padding:0 16px;}
+@media(max-width:600px){.bottom-nav{display:flex;}}
+.bn-btn{flex:1;max-width:160px;height:44px;border-radius:22px;border:1.5px solid var(--border);background:transparent;color:var(--text3);font-family:var(--fn);font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.bn-btn.shopee.on{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:0 0 18px rgba(255,107,53,.35);}
+.bn-btn.ml.on{background:var(--ml);border-color:var(--ml);color:#000;box-shadow:0 0 18px rgba(255,230,0,.30);}
+
+/* ── PAGE / GRID ── */
+.page{max-width:1100px;margin:0 auto;padding:20px 16px 24px;}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:14px;align-items:start;}
+.col-l{display:flex;flex-direction:column;gap:14px;}
+.col-r{display:flex;flex-direction:column;gap:14px;}
+@media(max-width:780px){
+  .grid{grid-template-columns:1fr;}
+  .col-r{order:-1;}
+}
+
+/* ── CARD ── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.card-head{padding:16px 18px 0;display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.ch-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.ch-dot.shopee{background:var(--acc);box-shadow:0 0 8px var(--acc);}
+.ch-dot.ml{background:var(--ml);box-shadow:0 0 8px var(--ml);}
+.ch-dot.neutral{background:var(--text3);}
+.ch-dot.insight{background:var(--info);box-shadow:0 0 8px var(--info);}
+.ch-label{font-size:10px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3);}
+.card-body{padding:0 18px 18px;display:flex;flex-direction:column;gap:12px;}
+
+/* ── FIELDS ── */
+.field{display:flex;flex-direction:column;gap:6px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:400px){.row2{grid-template-columns:1fr;}}
+.lbl{font-size:12px;font-weight:700;color:var(--text3);letter-spacing:.2px;}
+
+/* ── CURRENCY INPUT ── */
+.inp-w{position:relative;}
+.pfx,.sfx{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--mo);font-size:12px;color:var(--text3);pointer-events:none;}
+.pfx{left:13px;} .sfx{right:13px;}
+
+/* base input style applied to both text and number */
+.inp-base {
+  width:100%;
+  background:var(--s2);
+  border:1.5px solid var(--border);
+  border-radius:var(--r2);
+  color:var(--text);
+  font-family:var(--mo);
+  font-size:15px;font-weight:600;
+  outline:none;
+  transition:border-color .15s,box-shadow .15s;
+  -webkit-appearance:none;
+}
+.inp-base:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,107,53,.14);}
+.ml-active .inp-base:focus{border-color:var(--ml);box-shadow:0 0 0 3px rgba(255,230,0,.12);}
+
+/* currency (text) inputs */
+input.inp-currency{
+  padding:12px 13px 12px 35px;
+}
+/* percentage (number) inputs */
+input.inp-pct{
+  padding:12px 34px 12px 13px;
+  -moz-appearance:textfield;
+}
+input.inp-pct::-webkit-outer-spin-button,
+input.inp-pct::-webkit-inner-spin-button{-webkit-appearance:none;}
+
+/* sim input */
+.sim-inp{
+  padding:11px 13px 11px 34px;
+}
+
+/* ── SEG ── */
+.seg{display:flex;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r2);padding:3px;gap:3px;}
+.seg-btn{flex:1;padding:9px 6px;background:transparent;border:none;border-radius:6px;color:var(--text3);font-family:var(--fn);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.seg-btn.on{background:var(--acc);color:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(255,107,53,.3);}
+.ml-active .seg-btn.on{background:var(--ml);color:#000;box-shadow:0 2px 8px rgba(255,230,0,.25);}
+
+/* ── MODE SEG ── */
+.mode-seg{display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r2);padding:3px;gap:3px;}
+.mode-btn{padding:10px 4px;background:transparent;border:none;border-radius:6px;color:var(--text3);font-family:var(--fn);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;line-height:1.3;}
+.mode-btn.on{background:var(--acc);color:#fff;box-shadow:0 2px 8px rgba(255,107,53,.3);}
+.ml-active .mode-btn.on{background:var(--ml);color:#000;}
+.mode-tip{background:var(--info-bg);border:1px solid var(--info-bd);border-radius:var(--r3);padding:10px 13px;font-size:12px;color:var(--text2);line-height:1.55;}
+.mode-tip strong{color:#9fa6ff;}
+
+/* ── TOGGLE ── */
+.tog{display:flex;align-items:center;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r2);padding:12px 14px;cursor:pointer;user-select:none;transition:border-color .15s;}
+.tog:hover{border-color:var(--border2);}
+.tog.on{border-color:var(--acc-bd);}
+.ml-active .tog.on{border-color:var(--ml-bd);}
+.tog-info{flex:1;}
+.tog-name{font-size:13px;font-weight:700;color:var(--text);}
+.tog-desc{font-size:11px;color:var(--text3);margin-top:2px;}
+.tog-sw{width:38px;height:22px;background:var(--border2);border-radius:11px;position:relative;flex-shrink:0;margin-left:12px;transition:background .18s;}
+.tog-sw::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .18s;box-shadow:0 1px 4px rgba(0,0,0,.4);}
+.tog.on .tog-sw{background:var(--acc);}
+.tog.on .tog-sw::after{transform:translateX(16px);}
+.ml-active .tog.on .tog-sw{background:var(--ml);}
+
+/* ── INFO BOX ── */
+.info-box{background:var(--info-bg);border:1px solid var(--info-bd);border-radius:var(--r3);padding:10px 13px;font-size:12px;color:var(--text2);line-height:1.55;}
+.info-box strong{color:#9fa6ff;}
+
+/* ── SAVE BTN ── */
+.save-btn{width:100%;padding:11px;background:transparent;border:1.5px dashed var(--border2);border-radius:var(--r2);color:var(--text3);font-family:var(--fn);font-size:12px;font-weight:700;cursor:pointer;transition:all .18s;letter-spacing:.3px;}
+.save-btn:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-bg);}
+.save-ok{display:none;font-size:11px;color:var(--ok);text-align:center;margin-top:6px;font-weight:700;}
+.save-ok.show{display:block;}
+
+/* ── RESULT CARD ── */
+.result-card{background:var(--s1);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .3s;}
+.result-card.live-shopee{border-color:var(--acc-bd);}
+.result-card.live-ml{border-color:var(--ml-bd);}
+
+.price-hero{padding:28px 20px 22px;text-align:center;border-bottom:1px solid var(--border);}
+.ph-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
+.ph-tag.shopee{background:var(--acc-bg);border:1px solid var(--acc-bd);color:var(--acc-l);}
+.ph-tag.ml{background:var(--ml-bg);border:1px solid var(--ml-bd);color:var(--ml-l);}
+.ph-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.ph-price{font-family:var(--mo);font-size:clamp(38px,7vw,60px);font-weight:700;letter-spacing:-2px;line-height:1;transition:color .3s;}
+.ph-price.shopee{color:var(--acc);}
+.ph-price.ml{color:var(--ml);}
+.ph-price.empty{color:var(--border2);}
+.ph-badge{display:inline-flex;align-items:center;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;margin-top:12px;}
+.ph-badge.shopee{background:var(--acc-bg);border:1px solid var(--acc-bd);color:var(--acc-l);}
+.ph-badge.ml{background:var(--ml-bg);border:1px solid var(--ml-bd);color:var(--ml-l);}
+
+/* ── SIMULATOR ── */
+.sim-wrap{padding:14px 18px;border-bottom:1px solid var(--border);background:rgba(99,106,255,.04);}
+.sim-label{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--info);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.sim-label::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--info);}
+.sim-row{display:flex;align-items:center;gap:10px;}
+.sim-inp-w{position:relative;flex:1;}
+.sim-pfx{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-family:var(--mo);font-size:12px;color:var(--info);pointer-events:none;}
+.sim-res{min-width:130px;text-align:right;font-family:var(--mo);font-size:12px;line-height:1.7;}
+.sim-res span{display:block;}
+.sim-res .ok{color:var(--ok);font-weight:700;}
+.sim-res .err{color:var(--err);font-weight:700;}
+.sim-res .neu{color:var(--text3);}
+@media(max-width:480px){.sim-row{flex-direction:column;align-items:stretch;}.sim-res{text-align:left;min-width:0;}}
+
+/* ── BREAKDOWN ── */
+.breakdown{padding:14px 18px;display:flex;flex-direction:column;}
+.br{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.br:last-child{border-bottom:none;}
+.br-l{display:flex;align-items:center;gap:10px;}
+.br-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.br-name{font-size:13px;font-weight:600;color:var(--text2);}
+.br-v{font-family:var(--mo);font-size:14px;font-weight:700;}
+.br-v.acc-shopee{color:var(--acc);}
+.br-v.acc-ml{color:var(--ml);}
+.br-v.neg{color:var(--err);}
+.br-v.pos{color:var(--ok);}
+.br.total-row{background:rgba(255,255,255,.03);border-radius:var(--r3);padding:12px;margin-top:4px;border:none;}
+.br.total-row .br-name{font-size:14px;font-weight:800;color:var(--text);}
+.br.total-row .br-v{font-size:16px;}
+
+/* ── PROFIT SUMMARY ── */
+.ps-row{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--border);gap:1px;background:var(--border);}
+.ps-cell{background:var(--s1);padding:12px 10px;text-align:center;display:flex;flex-direction:column;gap:4px;}
+.ps-lbl{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--text3);}
+.ps-val{font-family:var(--mo);font-size:17px;font-weight:700;}
+.ps-val.ok{color:var(--ok);}
+.ps-val.acc-shopee{color:var(--acc);}
+.ps-val.acc-ml{color:var(--ml);}
+.ps-val.err{color:var(--err);}
+
+/* ── STACKED BAR ── */
+.bar-wrap{padding:14px 18px;border-top:1px solid var(--border);}
+.bar-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);font-weight:600;margin-bottom:8px;}
+.bar-track{height:10px;border-radius:5px;background:var(--s2);overflow:hidden;display:flex;border:1px solid var(--border);}
+.bar-seg{height:100%;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.bar-legend{display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--text3);font-weight:600;flex-wrap:wrap;}
+
+/* ── ALERTS ── */
+.alerts-wrap{padding:0 18px 14px;display:flex;flex-direction:column;gap:8px;}
+.al{display:flex;align-items:flex-start;gap:8px;padding:11px 13px;border-radius:var(--r3);font-size:12px;line-height:1.55;font-weight:500;}
+.al-ico{font-size:15px;flex-shrink:0;margin-top:1px;}
+.al strong{font-weight:800;}
+.al.warn{background:var(--warn-bg);border:1px solid var(--warn-bd);color:#fff3b0;}
+.al.err{background:var(--err-bg);border:1px solid var(--err-bd);color:#ffb3b0;}
+.al.ok{background:var(--ok-bg);border:1px solid var(--ok-bd);color:#a0f5b8;}
+.al.info{background:var(--info-bg);border:1px solid var(--info-bd);color:#b8beff;}
+
+/* ── EMPTY ── */
+.empty{padding:52px 20px;text-align:center;color:var(--text3);}
+.empty-ico{font-size:40px;opacity:.25;margin-bottom:12px;}
+.empty p{font-size:13px;line-height:1.65;}
+
+/* ── FAIXAS ── */
+.faixas{display:flex;flex-direction:column;gap:6px;}
+.fx{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r2);transition:border-color .2s,background .2s,transform .15s;}
+.fx.hi{transform:translateX(4px);}
+.fx.hi.shopee{border-color:var(--acc);background:rgba(255,107,53,.07);}
+.fx.hi.ml{border-color:var(--ml);background:rgba(255,230,0,.06);}
+.fx.hi .fx-num.shopee{color:var(--acc);}
+.fx.hi .fx-num.ml{color:var(--ml);}
+.fx-num{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);width:44px;flex-shrink:0;}
+.fx-range{font-family:var(--mo);font-size:11px;color:var(--text3);flex:1;}
+.fx-comm{font-family:var(--mo);font-size:15px;font-weight:700;color:var(--text2);width:38px;text-align:right;flex-shrink:0;}
+.fx-fix{font-family:var(--mo);font-size:10px;color:var(--text3);width:60px;text-align:right;flex-shrink:0;}
+.fx-tag{font-size:8px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:3px 6px;border-radius:4px;flex-shrink:0;}
+.fx-tag.shopee{background:var(--acc);color:#fff;}
+.fx-tag.ml{background:var(--ml);color:#000;}
+
+/* ── ML CATEGORY GRID ── */
+.ml-cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cat-btn{padding:10px 8px;background:var(--s2);border:1.5px solid var(--border);border-radius:var(--r2);color:var(--text2);font-family:var(--fn);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;line-height:1.3;}
+.cat-btn.on{border-color:var(--ml);background:var(--ml-bg);color:var(--ml-l);}
+.cat-rate{display:block;font-family:var(--mo);font-size:14px;font-weight:700;margin-top:2px;}
+
+/* ── INSIGHTS CARD ── */
+.insights-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+
+/* scenario buttons */
+.scenarios{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 18px 0;}
+.sc-btn{
+  background:var(--s2);
+  border:1.5px solid var(--border);
+  border-radius:var(--r2);
+  padding:12px 8px;
+  cursor:pointer;
+  transition:all .18s;
+  text-align:center;
+  display:flex;flex-direction:column;gap:4px;
+  align-items:center;
+}
+.sc-btn:hover{border-color:var(--border2);}
+.sc-btn.active-sc{border-color:var(--info);background:var(--info-bg);}
+.sc-ico{font-size:20px;}
+.sc-name{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);}
+.sc-price{font-family:var(--mo);font-size:14px;font-weight:700;color:var(--text);}
+.sc-profit{font-size:10px;font-weight:700;color:var(--ok);}
+.sc-btn.active-sc .sc-name{color:var(--info);}
+
+/* suggestion list */
+.sugg-list{display:flex;flex-direction:column;gap:8px;padding:0 18px 18px;}
+.sugg{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  padding:12px 14px;
+  cursor:pointer;
+  transition:all .18s;
+}
+.sugg:hover{border-color:var(--border2);}
+.sugg.highlighted{border-color:var(--info);background:var(--info-bg);}
+.sugg-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.sugg-body{flex:1;}
+.sugg-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:3px;}
+.sugg-desc{font-size:11px;color:var(--text3);line-height:1.5;}
+.sugg-price{
+  font-family:var(--mo);font-size:15px;font-weight:700;
+  flex-shrink:0;margin-left:8px;
+  align-self:center;
+  white-space:nowrap;
+}
+.sugg-price.green{color:var(--ok);}
+.sugg-price.orange{color:var(--acc);}
+.sugg-price.yellow{color:var(--warn);}
+.sugg-price.blue{color:#9fa6ff;}
+
+.insight-divider{height:1px;background:var(--border);margin:12px 18px;}
+.insight-section-lbl{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);padding:12px 18px 4px;}
+
+/* COPY TOAST */
+.copy-toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:var(--ok);color:#000;
+  font-family:var(--fn);font-size:12px;font-weight:800;
+  padding:8px 16px;border-radius:20px;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s;
+  z-index:200;
+}
+.copy-toast.show{opacity:1;}
+
+/* ── MP PANEL VISIBILITY ── */
+.mp-panel{display:none;}
+.mp-panel.visible{display:flex;flex-direction:column;gap:14px;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+footer{text-align:center;padding:24px 16px;font-size:11px;color:var(--text3);letter-spacing:.3px;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<!-- COPY TOAST -->
+<div class="copy-toast" id="copy-toast">✓ Preço copiado!</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo-mark">P</div>
+  <div><div class="logo-name">Precifica</div></div>
+  <div class="mp-nav">
+    <button class="mp-btn shopee on" id="top-shopee" onclick="switchMP('shopee')">🛍 Shopee</button>
+    <button class="mp-btn ml" id="top-ml" onclick="switchMP('ml')">🟡 Mercado Livre</button>
+    <button class="mp-btn off" title="Em breve">📦 Magalu</button>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button class="bn-btn shopee on" id="bn-shopee" onclick="switchMP('shopee')">🛍 Shopee</button>
+  <button class="bn-btn ml" id="bn-ml" onclick="switchMP('ml')">🟡 Mercado Livre</button>
+</div>
+
+<div class="page">
+<div class="grid">
+
+  <!-- ═══ COL LEFT ═══ -->
+  <div class="col-l">
+
+    <!-- COSTS -->
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-dot neutral"></div>
+        <span class="ch-label">📋 Custos do Produto</span>
+      </div>
+      <div class="card-body">
+        <div class="row2">
+          <div class="field">
+            <span class="lbl">🏷️ Custo do Produto</span>
+            <div class="inp-w">
+              <span class="pfx">R$</span>
+              <input type="text" id="c-product" class="inp-base inp-currency" inputmode="decimal" placeholder="0,00" data-raw="0" autocomplete="off"/>
+            </div>
+          </div>
+          <div class="field">
+            <span class="lbl">📦 Embalagem</span>
+            <div class="inp-w">
+              <span class="pfx">R$</span>
+              <input type="text" id="c-pkg" class="inp-base inp-currency" inputmode="decimal" placeholder="0,00" data-raw="0" autocomplete="off"/>
+            </div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <span class="lbl">🚚 Frete (sua parte)</span>
+            <div class="inp-w">
+              <span class="pfx">R$</span>
+              <input type="text" id="c-ship" class="inp-base inp-currency" inputmode="decimal" placeholder="0,00" data-raw="0" autocomplete="off"/>
+            </div>
+          </div>
+          <div class="field">
+            <span class="lbl">🔖 Outros Custos</span>
+            <div class="inp-w">
+              <span class="pfx">R$</span>
+              <input type="text" id="c-other" class="inp-base inp-currency" inputmode="decimal" placeholder="0,00" data-raw="0" autocomplete="off"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFIT MODE -->
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-dot neutral"></div>
+        <span class="ch-label">💵 Quanto Quero Ganhar</span>
+      </div>
+      <div class="card-body">
+        <div class="mode-seg" id="mode-seg">
+          <button class="mode-btn on" data-mode="fixed">💰 Lucro<br>em R$</button>
+          <button class="mode-btn" data-mode="markup">📈 Markup<br>sobre custo</button>
+          <button class="mode-btn" data-mode="margin">🎯 Margem<br>sobre preço</button>
+        </div>
+        <div class="mode-tip" id="mode-tip">
+          <strong>Lucro fixo (recomendado):</strong> Quanto quer ganhar líquido por venda, já descontadas todas as taxas. <em>Ex: "Quero R$ 8 de lucro por item".</em>
+        </div>
+        <div class="field" id="inp-fixed">
+          <span class="lbl">✨ Lucro líquido por venda</span>
+          <div class="inp-w">
+            <span class="pfx">R$</span>
+            <input type="text" id="profit-fixed" class="inp-base inp-currency" inputmode="decimal" placeholder="5,00" data-raw="0" autocomplete="off"/>
+          </div>
+        </div>
+        <div class="field" id="inp-markup" style="display:none">
+          <span class="lbl">📈 Markup sobre custo total</span>
+          <div class="inp-w">
+            <input type="number" id="profit-markup" class="inp-base inp-pct" min="0" max="500" step="1" placeholder="80"/>
+            <span class="sfx">%</span>
+          </div>
+        </div>
+        <div class="field" id="inp-margin" style="display:none">
+          <span class="lbl">🎯 Margem sobre preço final</span>
+          <div class="inp-w">
+            <input type="number" id="profit-margin" class="inp-base inp-pct" min="0" max="80" step="0.5" placeholder="25"/>
+            <span class="sfx">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHOPEE CONFIG -->
+    <div class="card mp-panel visible" id="panel-shopee-cfg">
+      <div class="card-head">
+        <div class="ch-dot shopee"></div>
+        <span class="ch-label">⚙️ Configurações Shopee</span>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <span class="lbl">🧾 Tipo de Vendedor</span>
+          <div class="seg" id="seg-type">
+            <button class="seg-btn on" data-type="cnpj">CNPJ</button>
+            <button class="seg-btn" data-type="cpf">CPF</button>
+          </div>
+        </div>
+        <div class="field" id="vol-field" style="display:none">
+          <span class="lbl">📊 Volume (CPF)</span>
+          <div class="seg" id="seg-vol">
+            <button class="seg-btn on" data-vol="normal">Até 450 pedidos / 90d</button>
+            <button class="seg-btn" data-vol="high">+450 pedidos / 90d</button>
+          </div>
+        </div>
+        <div class="tog" id="tog-campaign">
+          <div class="tog-info">
+            <div class="tog-name">Campanha de Destaque</div>
+            <div class="tog-desc">+2,5% sobre todas as vendas do período</div>
+          </div>
+          <div class="tog-sw"></div>
+        </div>
+        <div class="info-box">
+          <strong>Frete Grátis</strong> obrigatório desde março/2026. Shopee subsidia R$ 20–40/item. Inclua diferença em <em>Frete (sua parte)</em>.
+        </div>
+      </div>
+    </div>
+
+    <!-- ML CONFIG -->
+    <div class="card mp-panel" id="panel-ml-cfg">
+      <div class="card-head">
+        <div class="ch-dot ml"></div>
+        <span class="ch-label">⚙️ Configurações Mercado Livre</span>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <span class="lbl">📢 Tipo de Anúncio</span>
+          <div class="seg" id="seg-ml-type">
+            <button class="seg-btn on" data-ml-type="classico">Clássico (12%)</button>
+            <button class="seg-btn" data-ml-type="premium">Premium (17%)</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="lbl">🗂️ Categoria do Produto</span>
+          <div class="ml-cat-grid" id="ml-cat-grid"></div>
+        </div>
+        <div class="info-box" style="border-color:var(--ml-bd);background:var(--ml-bg);color:var(--text2);">
+          <strong style="color:var(--ml-l)">Taxa fixa</strong> de R$ 6,00 para produtos abaixo de R$ 79. Produtos abaixo de R$ 12,50 pagam 50% do valor como taxa.
+        </div>
+      </div>
+    </div>
+
+    <button class="save-btn" id="save-btn">💾 Salvar configurações</button>
+    <div class="save-ok" id="save-ok">✓ Configurações salvas</div>
+  </div>
+
+  <!-- ═══ COL RIGHT ═══ -->
+  <div class="col-r">
+
+    <!-- RESULT -->
+    <div class="result-card" id="result-card">
+      <div class="card-head" style="padding:16px 18px 0;margin-bottom:0;">
+        <div class="ch-dot shopee" id="r-dot"></div>
+        <span class="ch-label">Preço Recomendado de Venda</span>
+      </div>
+      <div id="r-empty" class="empty">
+        <div class="empty-ico">🧮</div>
+        <p>Preencha o custo do produto<br>e quanto quer ganhar por venda.</p>
+      </div>
+      <div id="r-content" style="display:none">
+        <div class="price-hero">
+          <div class="ph-tag shopee" id="ph-tag">Shopee</div>
+          <div class="ph-label">PREÇO MÍNIMO DE VENDA</div>
+          <div class="ph-price shopee" id="ph-price" title="Clique para copiar" style="cursor:pointer">—</div>
+          <div class="ph-badge shopee" id="ph-badge">—</div>
+        </div>
+        <div class="sim-wrap">
+          <div class="sim-label">Simular outro preço</div>
+          <div class="sim-row">
+            <div class="sim-inp-w">
+              <span class="sim-pfx">R$</span>
+              <input type="text" class="inp-base sim-inp" id="sim-price" inputmode="decimal" placeholder="Digite um preço..." data-raw="0" autocomplete="off"/>
+            </div>
+            <div class="sim-res" id="sim-res"><span class="neu">↑ Simule um preço</span></div>
+          </div>
+        </div>
+        <div class="breakdown">
+          <div class="br">
+            <div class="br-l"><div class="br-ico" style="background:rgba(255,107,53,.12)">💰</div><span class="br-name">Preço de Venda</span></div>
+            <span class="br-v acc-shopee" id="br-price">—</span>
+          </div>
+          <div class="br">
+            <div class="br-l"><div class="br-ico" style="background:rgba(255,69,58,.10)">📦</div><span class="br-name">Custo Total</span></div>
+            <span class="br-v neg" id="br-cost">—</span>
+          </div>
+          <div class="br">
+            <div class="br-l"><div class="br-ico" style="background:rgba(255,69,58,.10)">🏪</div><span class="br-name">Comissão do Marketplace</span></div>
+            <span class="br-v neg" id="br-comm">—</span>
+          </div>
+          <div class="br">
+            <div class="br-l"><div class="br-ico" style="background:rgba(255,69,58,.10)">🔧</div><span class="br-name">Taxa Fixa por Item</span></div>
+            <span class="br-v neg" id="br-fixed">—</span>
+          </div>
+          <div class="br total-row">
+            <div class="br-l"><div class="br-ico" style="background:rgba(48,209,88,.12)">✨</div><span class="br-name">Lucro Líquido</span></div>
+            <span class="br-v pos" id="br-profit">—</span>
+          </div>
+        </div>
+        <div class="ps-row">
+          <div class="ps-cell">
+            <span class="ps-lbl">Markup s/ custo</span>
+            <span class="ps-val acc-shopee" id="ps-markup">—</span>
+          </div>
+          <div class="ps-cell">
+            <span class="ps-lbl">Margem s/ preço</span>
+            <span class="ps-val ok" id="ps-margin">—</span>
+          </div>
+          <div class="ps-cell">
+            <span class="ps-lbl">Marketplace leva</span>
+            <span class="ps-val err" id="ps-mp">—</span>
+          </div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-labels">
+            <span>Distribuição do preço</span>
+            <span id="bar-legend">—</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-seg" id="bc" style="background:var(--info)"></div>
+            <div class="bar-seg" id="bf" style="background:var(--err)"></div>
+            <div class="bar-seg" id="bp" style="background:var(--ok)"></div>
+          </div>
+          <div class="bar-legend">
+            <span style="color:var(--info)">● Custo</span>
+            <span style="color:var(--err)">● Taxas</span>
+            <span style="color:var(--ok)">● Seu lucro</span>
+          </div>
+        </div>
+        <div class="alerts-wrap" id="alerts"></div>
+      </div>
+    </div>
+
+    <!-- INSIGHTS CARD -->
+    <div class="insights-card" id="insights-card" style="display:none">
+      <div class="card-head" style="padding:16px 18px 0;margin-bottom:12px;">
+        <div class="ch-dot insight"></div>
+        <span class="ch-label" style="color:var(--info)">💡 Insights de Preço</span>
+      </div>
+
+      <!-- SCENARIOS -->
+      <div class="insight-section-lbl">Cenários</div>
+      <div class="scenarios" id="sc-row" style="margin-bottom:14px;"></div>
+
+      <div class="insight-divider"></div>
+
+      <!-- SUGGESTIONS -->
+      <div class="insight-section-lbl">Sugestões Estratégicas</div>
+      <div class="sugg-list" id="sugg-list"></div>
+    </div>
+
+    <!-- SHOPEE FAIXAS -->
+    <div class="card mp-panel visible" id="panel-shopee-faixas">
+      <div class="card-head">
+        <div class="ch-dot shopee"></div>
+        <span class="ch-label">Faixas Shopee — março/2026</span>
+      </div>
+      <div class="card-body">
+        <div class="faixas">
+          <div class="fx" id="f1"><div class="fx-num shopee">Faixa 1</div><div class="fx-range">R$ 0 – R$ 7,99</div><div class="fx-comm">50%</div><div class="fx-fix">+ R$ 0</div></div>
+          <div class="fx" id="f2"><div class="fx-num shopee">Faixa 2</div><div class="fx-range">R$ 8 – R$ 79,99</div><div class="fx-comm">20%</div><div class="fx-fix">+ R$ 4</div></div>
+          <div class="fx" id="f3"><div class="fx-num shopee">Faixa 3</div><div class="fx-range">R$ 80 – R$ 99,99</div><div class="fx-comm">14%</div><div class="fx-fix">+ R$ 16</div></div>
+          <div class="fx" id="f4"><div class="fx-num shopee">Faixa 4</div><div class="fx-range">R$ 100 – R$ 199,99</div><div class="fx-comm">14%</div><div class="fx-fix">+ R$ 20</div></div>
+          <div class="fx" id="f5"><div class="fx-num shopee">Faixa 5</div><div class="fx-range">R$ 200 ou mais</div><div class="fx-comm">14%</div><div class="fx-fix">+ R$ 26</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ML FAIXAS -->
+    <div class="card mp-panel" id="panel-ml-faixas">
+      <div class="card-head">
+        <div class="ch-dot ml"></div>
+        <span class="ch-label">Estrutura de Taxas — Mercado Livre 2026</span>
+      </div>
+      <div class="card-body">
+        <div class="faixas">
+          <div class="fx" id="mf1"><div class="fx-num ml">Grátis</div><div class="fx-range">Sem comissão</div><div class="fx-comm" style="color:var(--ok)">0%</div><div class="fx-fix">Limitado</div></div>
+          <div class="fx" id="mf2"><div class="fx-num ml">Clássico</div><div class="fx-range">Moderada visibilidade</div><div class="fx-comm">10–14%</div><div class="fx-fix">Varia</div></div>
+          <div class="fx" id="mf3"><div class="fx-num ml">Premium</div><div class="fx-range">Máxima + 12x sem juros</div><div class="fx-comm">15–19%</div><div class="fx-fix">Varia</div></div>
+          <div class="fx" id="mf4"><div class="fx-num ml">Taxa Fixa</div><div class="fx-range">Produto &lt; R$ 79,00</div><div class="fx-comm" style="color:var(--err)">+R$6</div><div class="fx-fix">por item</div></div>
+          <div class="fx" id="mf5"><div class="fx-num ml">Micro</div><div class="fx-range">Produto &lt; R$ 12,50</div><div class="fx-comm" style="color:var(--err)">50%</div><div class="fx-fix">taxa fixa</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<footer>Precifica · Shopee: taxas de março/2026 · Mercado Livre: referência jan–mar/2026 · Dados salvos localmente</footer>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+const S = {
+  mp:'shopee', mode:'fixed',
+  sellerType:'cnpj', highVol:false, campaign:false,
+  mlType:'classico', mlCatRate:0.12,
+};
+
+const ML_CATS = [
+  {name:'Moda & Vestuário', classico:0.12,premium:0.17},
+  {name:'Eletrônicos',      classico:0.11,premium:0.16},
+  {name:'Beleza & Saúde',   classico:0.14,premium:0.19},
+  {name:'Casa & Jardim',    classico:0.12,premium:0.17},
+  {name:'Brinquedos',       classico:0.13,premium:0.18},
+  {name:'Esportes',         classico:0.12,premium:0.17},
+  {name:'Livros',           classico:0.10,premium:0.15},
+  {name:'Calçados',         classico:0.13,premium:0.18},
+];
+let mlCatIdx=0;
+
+const MODE_TIPS={
+  fixed:'<strong>Lucro fixo (recomendado):</strong> Quanto quer ganhar líquido por venda, já descontadas todas as taxas. <em>Ex: "Quero R$ 8 de lucro por item".</em>',
+  markup:'<strong>Markup sobre custo:</strong> % de lucro sobre seu custo total. <em>Ex: "Quero 80% sobre meu custo".</em>',
+  margin:'<strong>Margem sobre preço:</strong> % do preço final que sobra de lucro. Modo técnico.',
+};
+
+// ════════════════════════════════════════════
+// CURRENCY MASK
+// ════════════════════════════════════════════
+function applyMask(input){
+  const raw = input.value.replace(/\D/g,'');
+  if(!raw){ input.value=''; input.dataset.raw='0'; return; }
+  const cents = parseInt(raw,10);
+  const val   = cents/100;
+  input.dataset.raw = val.toFixed(2);
+  input.value = val.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function getRaw(id){ return parseFloat(document.getElementById(id).dataset.raw||'0')||0; }
+
+function setMaskedValue(id, val){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.dataset.raw=val.toFixed(2);
+  el.value=val.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+// attach mask to all currency inputs
+document.querySelectorAll('.inp-currency, .sim-inp').forEach(inp=>{
+  inp.addEventListener('input',()=>{ applyMask(inp); calculate(); });
+  inp.addEventListener('keydown',e=>{
+    // allow: backspace, delete, arrows, tab, enter, ctrl+A/C/V/X
+    if([8,46,37,38,39,40,9,13].includes(e.keyCode)) return;
+    if((e.ctrlKey||e.metaKey)&&[65,67,86,88].includes(e.keyCode)) return;
+    // block non-digits
+    if(!/\d/.test(e.key)) e.preventDefault();
+  });
+});
+// sim-price separate handler
+document.getElementById('sim-price').addEventListener('input',()=>{
+  applyMask(document.getElementById('sim-price'));
+  simulatePrice();
+});
+
+// ════════════════════════════════════════════
+// FORMAT HELPER
+// ════════════════════════════════════════════
+function fmt(v,neg=false){
+  const s=Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return (neg?'− ':'')+' R$ '+s;
+}
+
+function fmtShort(v){
+  // short format without leading space
+  return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+// ════════════════════════════════════════════
+// SHOPEE RANGES
+// ════════════════════════════════════════════
+const SHOPEE_RANGES=[
+  {id:1,min:0,   max:7.99,    comm:0.50,fix:0 },
+  {id:2,min:8,   max:79.99,   comm:0.20,fix:4 },
+  {id:3,min:80,  max:99.99,   comm:0.14,fix:16},
+  {id:4,min:100, max:199.99,  comm:0.14,fix:20},
+  {id:5,min:200, max:Infinity,comm:0.14,fix:26},
+];
+function shopeeRange(p){return SHOPEE_RANGES.find(r=>p>=r.min&&p<=r.max)||SHOPEE_RANGES[4];}
+function shopeeFeesAt(price){
+  const r=shopeeRange(price);
+  const xf=(S.sellerType==='cpf'&&S.highVol)?3:0;
+  const xc=S.campaign?0.025:0;
+  return {r,comm:(r.comm+xc)*price,fix:r.fix+xf,total:(r.comm+xc)*price+r.fix+xf};
+}
+
+// ════════════════════════════════════════════
+// ML FEES
+// ════════════════════════════════════════════
+function mlFeesAt(price){
+  const comm=S.mlCatRate*price;
+  const fix=price<12.50?price*0.50:price<79?6:0;
+  return {comm,fix,total:comm+fix};
+}
+
+// ════════════════════════════════════════════
+// TOTAL COST
+// ════════════════════════════════════════════
+function totalCost(){
+  return getRaw('c-product')+getRaw('c-pkg')+getRaw('c-ship')+getRaw('c-other');
+}
+
+function hasTarget(){
+  if(S.mode==='fixed')  return true;
+  if(S.mode==='markup') return (parseFloat(document.getElementById('profit-markup').value)||0)>0;
+  if(S.mode==='margin') return (parseFloat(document.getElementById('profit-margin').value)||0)>0;
+  return false;
+}
+
+// ════════════════════════════════════════════
+// PRICE SOLVER (iterative convergence)
+// ════════════════════════════════════════════
+function solvePrice(cost,feeFn,overrideTarget){
+  let price=cost+15;
+  const isShopee=S.mp==='shopee';
+
+  let target;
+  if(overrideTarget!==undefined){
+    target=overrideTarget;
+  } else if(S.mode==='fixed'){
+    target=getRaw('profit-fixed');
+  } else if(S.mode==='markup'){
+    target=cost*(parseFloat(document.getElementById('profit-markup').value)||0)/100;
+  } else {
+    target=null;
+  }
+
+  if(S.mode==='margin'&&overrideTarget===undefined){
+    const mf=(parseFloat(document.getElementById('profit-margin').value)||0)/100;
+    for(let i=0;i<300;i++){
+      const np=isShopee
+        ?(()=>{const r=shopeeRange(price);const tc=r.comm+(S.campaign?0.025:0);const tf=r.fix+(S.sellerType==='cpf'&&S.highVol?3:0);const d=1-tc-mf;if(d<=0)return 9999;return(cost+tf)/d;})()
+        :(()=>{const d=1-S.mlCatRate-mf;if(d<=0)return 9999;const fix=price<12.50?price*.5:price<79?6:0;return(cost+fix)/d;})();
+      if(Math.abs(np-price)<0.001){price=np;break;} price=np;
+    }
+  } else {
+    if(target===null||target===undefined||target<0)return null;
+    for(let i=0;i<300;i++){
+      const fees=feeFn(price);
+      const np=cost+fees.total+target;
+      if(Math.abs(np-price)<0.001){price=np;break;} price=np;
+    }
+  }
+  return Math.ceil(price*100)/100;
+}
+
+// ════════════════════════════════════════════
+// CALCULATE
+// ════════════════════════════════════════════
+let lastPrice=0, lastCost=0;
+
+function calculate(){
+  const cost=totalCost();
+  if(cost<=0||!hasTarget()){showEmpty();return;}
+  const isML=S.mp==='ml';
+  const feeFn=isML?mlFeesAt:shopeeFeesAt;
+  const price=solvePrice(cost,feeFn);
+  if(!price||price<0||price>999999){showEmpty();return;}
+
+  lastPrice=price; lastCost=cost;
+
+  const {comm:commV,fix:fixV,total:mpT,r:range}=feeFn(price);
+  const profit=price-cost-mpT;
+  const margPct=profit/price*100;
+  const markPct=cost>0?profit/cost*100:0;
+  const mpPct=mpT/price*100;
+
+  // show result
+  document.getElementById('r-empty').style.display='none';
+  document.getElementById('r-content').style.display='';
+  document.getElementById('result-card').className='result-card '+(isML?'live-ml':'live-shopee');
+
+  const accCls=isML?'acc-ml':'acc-shopee';
+  document.getElementById('ph-price').className='ph-price '+(isML?'ml':'shopee');
+  document.getElementById('ph-tag').className='ph-tag '+(isML?'ml':'shopee');
+  document.getElementById('ph-badge').className='ph-badge '+(isML?'ml':'shopee');
+  document.getElementById('r-dot').className='ch-dot '+(isML?'ml':'shopee');
+  document.getElementById('ph-tag').textContent=isML?'🟡 Mercado Livre':'🛍 Shopee';
+  document.querySelectorAll('[id^=br-price],[id^=ps-markup]').forEach(el=>{
+    if(el.classList.contains('br-v')||el.classList.contains('ps-val'))
+      el.className=el.className.replace(/acc-\w+/g,accCls);
+  });
+  // update dynamic class refs
+  document.getElementById('br-price').className='br-v '+accCls;
+  document.getElementById('ps-markup').className='ps-val '+accCls;
+
+  document.getElementById('ph-price').textContent=fmtShort(price);
+  document.getElementById('ph-price').dataset.value=price;
+
+  if(!isML){
+    const rng=range||shopeeRange(price);
+    const xf2=(S.sellerType==='cpf'&&S.highVol)?3:0;
+    const xc2=S.campaign?0.025:0;
+    document.getElementById('ph-badge').textContent=`Faixa ${rng.id} — ${((rng.comm+xc2)*100).toFixed(1)}% + R$ ${(rng.fix+xf2).toFixed(2)} fixo`;
+  } else {
+    const type=S.mlType==='premium'?'Premium':'Clássico';
+    document.getElementById('ph-badge').textContent=`${type} — ${(S.mlCatRate*100).toFixed(0)}% + R$ ${fixV.toFixed(2)} taxa fixa`;
+  }
+
+  document.getElementById('br-price').textContent=fmtShort(price);
+  document.getElementById('br-cost').textContent =fmt(cost,true);
+  document.getElementById('br-comm').textContent =fmt(commV,true);
+  document.getElementById('br-fixed').textContent=fmt(fixV,true);
+  document.getElementById('br-profit').textContent=fmtShort(profit);
+  document.getElementById('ps-markup').textContent=markPct.toFixed(1)+'%';
+  document.getElementById('ps-margin').textContent=margPct.toFixed(1)+'%';
+  document.getElementById('ps-mp').textContent=mpPct.toFixed(1)+'%';
+
+  const cf=Math.max(0,Math.min(100,cost/price*100));
+  const ff=Math.max(0,Math.min(100,mpT/price*100));
+  const pf=Math.max(0,100-cf-ff);
+  document.getElementById('bc').style.width=cf+'%';
+  document.getElementById('bf').style.width=ff+'%';
+  document.getElementById('bp').style.width=pf+'%';
+  document.getElementById('bar-legend').textContent=`Custo ${cf.toFixed(0)}% · Taxas ${ff.toFixed(0)}% · Lucro ${pf.toFixed(0)}%`;
+
+  if(!isML){
+    const rng=range||shopeeRange(price);
+    SHOPEE_RANGES.forEach(r=>{
+      const el=document.getElementById('f'+r.id); if(!el)return;
+      const hi=r.id===rng.id;
+      el.classList.toggle('hi',hi);
+      el.classList.add('shopee');
+      const old=el.querySelector('.fx-tag'); if(old)old.remove();
+      if(hi){const t=document.createElement('div');t.className='fx-tag shopee';t.textContent='✓ atual';el.appendChild(t);}
+    });
+  }
+
+  buildAlerts(price,cost,mpT,fixV,mpPct,profit,range,isML);
+  buildInsights(price,cost,feeFn,isML,margPct,markPct,mpPct);
+  simulatePrice();
+}
+
+// ════════════════════════════════════════════
+// ALERTS
+// ════════════════════════════════════════════
+function buildAlerts(price,cost,mpT,fixV,mpPct,profit,range,isML){
+  const el=document.getElementById('alerts');
+  el.innerHTML='';
+  if(profit<0){
+    el.innerHTML=`<div class="al err"><span class="al-ico">🚨</span><div><strong>Prejuízo!</strong> Com esses parâmetros a venda gera perda. Reduza a meta de lucro ou revise os custos.</div></div>`;
+    return;
+  }
+  if(!isML&&range){
+    const idx=SHOPEE_RANGES.findIndex(r=>r.id===range.id);
+    if(idx>0){
+      const prev=SHOPEE_RANGES[idx-1];
+      const xf=(S.sellerType==='cpf'&&S.highVol)?3:0;const xc=S.campaign?0.025:0;
+      const altFee=(prev.comm+xc)*prev.max+prev.fix+xf;
+      const diff=mpT-altFee;
+      if(diff>0.5&&(price-prev.max)<6){
+        el.innerHTML+=`<div class="al warn"><span class="al-ico">⚠️</span><div><strong>Zona de fronteira!</strong> Está na Faixa ${range.id}, que custa <strong>R$ ${diff.toFixed(2)}</strong> a mais. Preço alternativo: <strong>R$ ${prev.max.toFixed(2)}</strong>.</div></div>`;
+      }
+    }
+  }
+  if(mpPct>35) el.innerHTML+=`<div class="al err"><span class="al-ico">🔴</span><div><strong>Custo elevado:</strong> O marketplace leva <strong>${mpPct.toFixed(1)}%</strong>. Considere vender em kit para diluir a taxa fixa de R$ ${fixV.toFixed(2)}.</div></div>`;
+  if(isML&&price<79) el.innerHTML+=`<div class="al warn"><span class="al-ico">💡</span><div><strong>Taxa fixa de R$ 6 aplicada.</strong> Preço abaixo de R$ 79. Tente superar esse valor para removê-la.</div></div>`;
+}
+
+// ════════════════════════════════════════════
+// INSIGHTS ENGINE
+// ════════════════════════════════════════════
+function psychoPrice(p){
+  // round to nearest .90 or .99 below
+  const floors=[.90,.99];
+  const base=Math.floor(p);
+  for(const f of floors){
+    const candidate=base+f;
+    if(candidate<=p) return candidate;
+  }
+  return (base-1)+0.99;
+}
+
+function buildInsights(price,cost,feeFn,isML,margPct,markPct,mpPct){
+  const card=document.getElementById('insights-card');
+  card.style.display='';
+
+  // ── SCENARIOS ──────────────────────────────
+  const scenarios=[
+    {
+      key:'conservador',
+      icon:'🟢',
+      name:'Conservador',
+      profitMulti:0.5,  // 50% of current profit target
+      desc:'Menor preço',
+    },
+    {
+      key:'equilibrado',
+      icon:'🟡',
+      name:'Equilibrado',
+      profitMulti:1,    // current target
+      desc:'Recomendado',
+      active:true,
+    },
+    {
+      key:'premium',
+      icon:'🔵',
+      name:'Premium',
+      profitMulti:2,    // 2x profit
+      desc:'Margem alta',
+    },
+  ];
+
+  const scRow=document.getElementById('sc-row');
+  scRow.innerHTML='';
+
+  scenarios.forEach(sc=>{
+    let scPrice;
+    if(S.mode==='fixed'){
+      const base=getRaw('profit-fixed');
+      scPrice=solvePrice(cost,feeFn,base*sc.profitMulti);
+    } else if(S.mode==='markup'){
+      const base=cost*(parseFloat(document.getElementById('profit-markup').value)||0)/100;
+      scPrice=solvePrice(cost,feeFn,base*sc.profitMulti);
+    } else {
+      // margin mode — adjust margin
+      const base=(parseFloat(document.getElementById('profit-margin').value)||0);
+      const adj=Math.min(75,base*sc.profitMulti);
+      // simple approximation for scenario
+      const adjFrac=adj/100;
+      let p2=cost+10;
+      for(let i=0;i<200;i++){
+        const fees=feeFn(p2);
+        const d=1-(fees.total/p2)-adjFrac;
+        if(d<=0){p2=9999;break;}
+        const np2=(cost+fees.fix)/Math.max(0.01,1-(isML?S.mlCatRate:shopeeRange(p2).comm)-adjFrac);
+        if(Math.abs(np2-p2)<0.001){p2=np2;break;} p2=np2;
+      }
+      scPrice=Math.ceil(p2*100)/100;
+    }
+    if(!scPrice||scPrice>999999)return;
+    const {total}=feeFn(scPrice);
+    const scProfit=scPrice-cost-total;
+
+    const btn=document.createElement('div');
+    btn.className='sc-btn'+(sc.active?' active-sc':'');
+    btn.innerHTML=`
+      <div class="sc-ico">${sc.icon}</div>
+      <div class="sc-name">${sc.name}</div>
+      <div class="sc-price">${fmtShort(scPrice)}</div>
+      <div class="sc-profit">+${fmtShort(Math.max(0,scProfit))}</div>
+    `;
+    btn.title=`Clique para copiar ${fmtShort(scPrice)}`;
+    btn.onclick=()=>copyPrice(scPrice);
+    scRow.appendChild(btn);
+  });
+
+  // ── SUGGESTIONS ────────────────────────────
+  const suggList=document.getElementById('sugg-list');
+  suggList.innerHTML='';
+  const suggestions=[];
+
+  // 1. Preço psicológico
+  const pp=psychoPrice(price);
+  if(Math.abs(pp-price)>0.5){
+    const {total:ppT}=feeFn(pp);
+    const ppProfit=pp-cost-ppT;
+    if(ppProfit>=0){
+      suggestions.push({
+        icon:'🧠',title:'Preço Psicológico',
+        desc:`Terminar em ,90 ou ,99 aumenta percepção de valor. Lucro cai R$ ${Math.abs(ppProfit-(price-cost-(feeFn(price).total))).toFixed(2)}.`,
+        price:pp,profitColor:'orange',
+        tip:`Preço: ${fmtShort(pp)} · Lucro: ${fmtShort(ppProfit)}`,
+        highlight:true,
+      });
+    }
+  }
+
+  // 2. Próxima faixa melhor (só Shopee)
+  if(!isML){
+    const rng=shopeeRange(price);
+    if(rng.id===2&&price>60){
+      // Check if going to R$8 range start helps vs current position
+      const targetPrice=8;
+      const {total:t8}=feeFn(targetPrice);
+      // suggest minimum Faixa 2 entry
+    }
+    // If in Faixa 3+ suggest optimal position
+    if(rng.id>=3){
+      const prev=SHOPEE_RANGES[SHOPEE_RANGES.findIndex(r=>r.id===rng.id)-1];
+      const altP=prev.max;
+      const {total:altT}=feeFn(altP);
+      const altProfit=altP-cost-altT;
+      if(altProfit>0&&altP>=cost){
+        suggestions.push({
+          icon:'⬇️',title:'Faixa Anterior (menos taxa)',
+          desc:`Baixar até R$ ${altP.toFixed(2)} evita a taxa fixa maior da Faixa ${rng.id}. Preço menor, mas lucro pode ser maior.`,
+          price:altP,profitColor:'green',
+          tip:`Preço: ${fmtShort(altP)} · Lucro: ${fmtShort(altProfit)}`,
+        });
+      }
+    }
+  }
+
+  // 3. Kit sugestão quando mpPct alto
+  if(mpPct>28){
+    const kitQty=Math.ceil(6/Math.max(0.1,cost));
+    const safeQty=Math.min(Math.max(2,kitQty),10);
+    const kitCost=cost*safeQty;
+    const kitFix=feeFn(price*safeQty).fix;
+    const kitTargetProfit=isML?mlFeesAt:shopeeFeesAt;
+    // estimate kit price
+    let kitPrice=solvePrice(kitCost,feeFn,
+      S.mode==='fixed'?getRaw('profit-fixed')*safeQty
+      :S.mode==='markup'?kitCost*(parseFloat(document.getElementById('profit-markup').value)||0)/100
+      :null
+    );
+    if(kitPrice&&kitPrice<999999){
+      const {total:kT}=feeFn(kitPrice);
+      const kProfit=kitPrice-kitCost-kT;
+      const kMpPct=(kT/kitPrice*100);
+      if(kMpPct<mpPct-3){
+        suggestions.push({
+          icon:'📦',title:`Kit com ${safeQty} unidades`,
+          desc:`Agrupa ${safeQty} peças e dilui a taxa fixa. Custo do marketplace cai de ${mpPct.toFixed(0)}% para ~${kMpPct.toFixed(0)}% do preço.`,
+          price:kitPrice,profitColor:'green',
+          tip:`Preço do kit: ${fmtShort(kitPrice)} · Lucro: ${fmtShort(kProfit)}`,
+        });
+      }
+    }
+  }
+
+  // 4. Break-even
+  const bePrice=solvePrice(cost,feeFn,0);
+  if(bePrice&&bePrice<price){
+    suggestions.push({
+      icon:'⛔',title:'Break-even (sem lucro)',
+      desc:'Preço mínimo absoluto para não ter prejuízo. Útil para queima de estoque ou promoções.',
+      price:bePrice,profitColor:'yellow',
+      tip:`Preço mínimo: ${fmtShort(bePrice)} · Lucro: R$ 0,00`,
+    });
+  }
+
+  // 5. Markup 100% sobre custo
+  const price100=solvePrice(cost,feeFn,cost);
+  if(price100&&price100>price&&price100<999999){
+    const {total:t100}=feeFn(price100);
+    const p100=price100-cost-t100;
+    suggestions.push({
+      icon:'💎',title:'Markup 100% sobre custo',
+      desc:'Dobra o custo e ainda cobre todas as taxas. Boa referência para produtos com alta demanda.',
+      price:price100,profitColor:'blue',
+      tip:`Preço: ${fmtShort(price100)} · Lucro: ${fmtShort(p100)}`,
+    });
+  }
+
+  suggestions.forEach(sg=>{
+    const div=document.createElement('div');
+    div.className='sugg'+(sg.highlight?' highlighted':'');
+    div.title='Clique para copiar o preço';
+    div.innerHTML=`
+      <div class="sugg-icon">${sg.icon}</div>
+      <div class="sugg-body">
+        <div class="sugg-title">${sg.title}</div>
+        <div class="sugg-desc">${sg.desc}</div>
+        <div class="sugg-desc" style="margin-top:4px;color:var(--text2);font-weight:600">${sg.tip}</div>
+      </div>
+      <div class="sugg-price ${sg.profitColor}">${fmtShort(sg.price)}</div>
+    `;
+    div.onclick=()=>copyPrice(sg.price);
+    suggList.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════
+// COPY PRICE
+// ════════════════════════════════════════════
+function copyPrice(price){
+  const txt=fmtShort(price);
+  navigator.clipboard.writeText(txt).catch(()=>{});
+  const toast=document.getElementById('copy-toast');
+  toast.textContent=`✓ ${txt} copiado!`;
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),2000);
+}
+// click on main price to copy
+document.getElementById('ph-price').addEventListener('click',function(){
+  const v=parseFloat(this.dataset.value||'0');
+  if(v>0)copyPrice(v);
+});
+
+// ════════════════════════════════════════════
+// SIMULATE PRICE
+// ════════════════════════════════════════════
+function simulatePrice(){
+  const resEl=document.getElementById('sim-res');
+  const p=parseFloat(document.getElementById('sim-price').dataset.raw||'0');
+  if(!p||p<=0){resEl.innerHTML='<span class="neu">↑ Simule um preço</span>';return;}
+  const cost=totalCost();
+  if(cost<=0){resEl.innerHTML='<span class="neu">Informe os custos</span>';return;}
+  const isML=S.mp==='ml';
+  const {comm,fix,total}=isML?mlFeesAt(p):shopeeFeesAt(p);
+  const profit=p-cost-total;
+  const mk=cost>0?(profit/cost*100).toFixed(1):'—';
+  const cls=profit>=0?'ok':'err';
+  resEl.innerHTML=`<span class="${cls}">Lucro: ${fmt(profit)}</span><span class="neu">Markup: ${mk}%</span><span class="neu">Taxas: ${fmt(total)}</span>`;
+}
+
+// ════════════════════════════════════════════
+// SHOW EMPTY
+// ════════════════════════════════════════════
+function showEmpty(){
+  document.getElementById('r-empty').style.display='';
+  document.getElementById('r-content').style.display='none';
+  document.getElementById('result-card').className='result-card';
+  document.getElementById('insights-card').style.display='none';
+  SHOPEE_RANGES.forEach(r=>{const el=document.getElementById('f'+r.id);if(el)el.classList.remove('hi');});
+}
+
+// ════════════════════════════════════════════
+// SWITCH MARKETPLACE
+// ════════════════════════════════════════════
+function switchMP(mp){
+  S.mp=mp; const isML=mp==='ml';
+  document.getElementById('top-shopee').className='mp-btn shopee'+(mp==='shopee'?' on':'');
+  document.getElementById('top-ml').className='mp-btn ml'+(mp==='ml'?' on':'');
+  document.getElementById('bn-shopee').className='bn-btn shopee'+(mp==='shopee'?' on':'');
+  document.getElementById('bn-ml').className='bn-btn ml'+(mp==='ml'?' on':'');
+  document.getElementById('panel-shopee-cfg').className='card mp-panel'+(mp==='shopee'?' visible':'');
+  document.getElementById('panel-ml-cfg').className='card mp-panel'+(mp==='ml'?' visible':'');
+  document.getElementById('panel-shopee-faixas').className='card mp-panel'+(mp==='shopee'?' visible':'');
+  document.getElementById('panel-ml-faixas').className='card mp-panel'+(mp==='ml'?' visible':'');
+  document.body.classList.toggle('ml-active',isML);
+  calculate();
+}
+
+// ════════════════════════════════════════════
+// ML CATEGORY BUILDER
+// ════════════════════════════════════════════
+function buildMLCats(){
+  const grid=document.getElementById('ml-cat-grid');
+  grid.innerHTML='';
+  ML_CATS.forEach((cat,idx)=>{
+    const rate=S.mlType==='premium'?cat.premium:cat.classico;
+    const btn=document.createElement('button');
+    btn.className='cat-btn'+(idx===mlCatIdx?' on':'');
+    btn.innerHTML=`${cat.name}<span class="cat-rate">${(rate*100).toFixed(0)}%</span>`;
+    btn.onclick=()=>{
+      mlCatIdx=idx;
+      S.mlCatRate=S.mlType==='premium'?ML_CATS[idx].premium:ML_CATS[idx].classico;
+      buildMLCats(); calculate();
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// ════════════════════════════════════════════
+// EVENT LISTENERS
+// ════════════════════════════════════════════
+document.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    S.mode=btn.dataset.mode;
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('inp-fixed').style.display =S.mode==='fixed' ?'':'none';
+    document.getElementById('inp-markup').style.display=S.mode==='markup'?'':'none';
+    document.getElementById('inp-margin').style.display=S.mode==='margin'?'':'none';
+    document.getElementById('mode-tip').innerHTML=MODE_TIPS[S.mode];
+    calculate();
+  });
+});
+
+document.querySelectorAll('#seg-type .seg-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    S.sellerType=btn.dataset.type;
+    document.querySelectorAll('#seg-type .seg-btn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('vol-field').style.display=S.sellerType==='cpf'?'':'none';
+    calculate();
+  });
+});
+document.querySelectorAll('#seg-vol .seg-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    S.highVol=btn.dataset.vol==='high';
+    document.querySelectorAll('#seg-vol .seg-btn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on'); calculate();
+  });
+});
+document.getElementById('tog-campaign').addEventListener('click',function(){
+  S.campaign=!S.campaign; this.classList.toggle('on',S.campaign); calculate();
+});
+document.querySelectorAll('#seg-ml-type .seg-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    S.mlType=btn.dataset.mlType;
+    document.querySelectorAll('#seg-ml-type .seg-btn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    S.mlCatRate=S.mlType==='premium'?ML_CATS[mlCatIdx].premium:ML_CATS[mlCatIdx].classico;
+    buildMLCats(); calculate();
+  });
+});
+
+// pct inputs
+['profit-markup','profit-margin'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calculate);
+});
+
+// ════════════════════════════════════════════
+// SAVE / LOAD
+// ════════════════════════════════════════════
+document.getElementById('save-btn').addEventListener('click',()=>{
+  localStorage.setItem('precifica_v4',JSON.stringify({
+    mp:S.mp,mode:S.mode,sellerType:S.sellerType,highVol:S.highVol,campaign:S.campaign,
+    mlType:S.mlType,mlCatIdx,
+    cP:getRaw('c-product'),cK:getRaw('c-pkg'),cS:getRaw('c-ship'),cO:getRaw('c-other'),
+    pF:getRaw('profit-fixed'),
+    pM:document.getElementById('profit-markup').value,
+    pG:document.getElementById('profit-margin').value,
+  }));
+  const ok=document.getElementById('save-ok');
+  ok.classList.add('show');
+  setTimeout(()=>ok.classList.remove('show'),2500);
+});
+
+function loadConfig(){
+  try{
+    const d=JSON.parse(localStorage.getItem('precifica_v4')||'{}');
+    if(d.cP) setMaskedValue('c-product',d.cP);
+    if(d.cK) setMaskedValue('c-pkg',d.cK);
+    if(d.cS) setMaskedValue('c-ship',d.cS);
+    if(d.cO) setMaskedValue('c-other',d.cO);
+    if(d.pF) setMaskedValue('profit-fixed',d.pF);
+    if(d.pM) document.getElementById('profit-markup').value=d.pM;
+    if(d.pG) document.getElementById('profit-margin').value=d.pG;
+    if(d.sellerType){
+      S.sellerType=d.sellerType;
+      document.querySelectorAll('#seg-type .seg-btn').forEach(b=>b.classList.toggle('on',b.dataset.type===d.sellerType));
+      document.getElementById('vol-field').style.display=d.sellerType==='cpf'?'':'none';
+    }
+    if(d.highVol!==undefined){
+      S.highVol=d.highVol;
+      document.querySelectorAll('#seg-vol .seg-btn').forEach(b=>b.classList.toggle('on',(b.dataset.vol==='high')===d.highVol));
+    }
+    if(d.campaign){S.campaign=d.campaign;document.getElementById('tog-campaign').classList.toggle('on',d.campaign);}
+    if(d.mode){
+      S.mode=d.mode;
+      document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('on',b.dataset.mode===d.mode));
+      document.getElementById('inp-fixed').style.display =S.mode==='fixed' ?'':'none';
+      document.getElementById('inp-markup').style.display=S.mode==='markup'?'':'none';
+      document.getElementById('inp-margin').style.display=S.mode==='margin'?'':'none';
+      document.getElementById('mode-tip').innerHTML=MODE_TIPS[S.mode];
+    }
+    if(d.mlType){
+      S.mlType=d.mlType;
+      document.querySelectorAll('#seg-ml-type .seg-btn').forEach(b=>b.classList.toggle('on',b.dataset.mlType===d.mlType));
+    }
+    if(d.mlCatIdx!==undefined)mlCatIdx=d.mlCatIdx;
+    S.mlCatRate=S.mlType==='premium'?ML_CATS[mlCatIdx].premium:ML_CATS[mlCatIdx].classico;
+    if(d.mp)switchMP(d.mp);
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+buildMLCats();
+loadConfig();
+calculate();
+</script>
+</body>
+</html>
